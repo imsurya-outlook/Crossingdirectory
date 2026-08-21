@@ -1,0 +1,27 @@
+@model List<Category>
+@{ ViewData["Title"] = "Categories"; }
+<div class="container py-4">
+    <h1 class="h4 fw-bold mb-4">Categories</h1>
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr><th>#</th><th>Name</th><th>Slug</th><th>Icon</th><th>Active</th><th>Listings</th></tr>
+                </thead>
+                <tbody>
+                @foreach (var category in Model)
+                {
+                    <tr>
+                        <td class="small text-muted">@category.DisplayOrder</td>
+                        <td class="fw-semibold"><i class="bi @category.Icon me-2"></i>@category.Name</td>
+                        <td class="small text-muted">@category.Slug</td>
+                        <td class="small text-muted">@category.Icon</td>
+                        <td>@(category.IsActive ? "Yes" : "No")</td>
+                        <td>@category.Advertisements.Count</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

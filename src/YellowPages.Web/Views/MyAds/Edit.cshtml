@@ -1,0 +1,11 @@
+@model AdvertisementFormViewModel
+@{ ViewData["Title"] = "Edit listing"; }
+<div class="container py-4">
+    <h1 class="h4 fw-bold mb-1">Edit listing</h1>
+    <p class="text-muted small mb-4">Saving changes sends the listing back to the moderation queue.</p>
+    <partial name="_AdForm" model="Model" />
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/ad-form.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,11 @@
+@model AdvertisementFormViewModel
+@{ ViewData["Title"] = "New listing"; }
+<div class="container py-4">
+    <h1 class="h4 fw-bold mb-1">Create a listing</h1>
+    <p class="text-muted small mb-4">Add your services and photos. An administrator reviews every submission before it appears publicly.</p>
+    <partial name="_AdForm" model="Model" />
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/ad-form.js" asp-append-version="true"></script>
+}

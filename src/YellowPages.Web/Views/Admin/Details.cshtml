@@ -1,0 +1,115 @@
+@model Advertisement
+@{ ViewData["Title"] = "Review listing"; }
+
+<div class="container py-4">
+    <a class="small text-decoration-none" asp-action="Ads"><i class="bi bi-arrow-left me-1"></i>Back to moderation queue</a>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mt-3 mb-4">
+        <div>
+            <h1 class="h4 fw-bold mb-1">@Model.BusinessName</h1>
+            <p class="text-muted small mb-0">
+                @Model.Category?.Name <span class="mx-1">&middot;</span> @Model.Locality, @Model.City
+                <span class="mx-1">&middot;</span> submitted @Model.CreatedUtc.ToString("dd MMM yyyy HH:mm") UTC
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <form asp-action="ToggleFeature" asp-route-id="@Model.Id" method="post">
+                @Html.AntiForgeryToken()
+                <button class="btn btn-sm btn-outline-dark" type="submit">
+                    <i class="bi bi-star me-1"></i>@(Model.IsFeatured ? "Unfeature" : "Feature")
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h2 class="h6 fw-bold mb-2">Description</h2>
+                    <p class="mb-0">@Model.Description</p>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h2 class="h6 fw-bold mb-3">Services (@Model.ServiceOfferings.Count)</h2>
+                    <ul class="list-unstyled mb-0">
+                        @foreach (var service in Model.ServiceOfferings)
+                        {
+                            <li class="d-flex justify-content-between border-bottom py-2">
+                                <span>
+                                    <strong>@service.Name</strong>
+                                    @if (!string.IsNullOrWhiteSpace(service.Details))
+                                    {
+                                        <span class="text-muted small d-block">@service.Details</span>
+                                    }
+                                </span>
+                                @if (service.PriceFrom.HasValue)
+                                {
+                                    <span class="text-nowrap small">&#8377;@service.PriceFrom.Value.ToString("N0") @service.PriceUnit</span>
+                                }
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+
+            @if (Model.Photos.Any())
+            {
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h2 class="h6 fw-bold mb-3">Photos (@Model.Photos.Count)</h2>
+                        <div class="row g-2">
+                            @foreach (var photo in Model.Photos)
+                            {
+                                <div class="col-6 col-md-3">
+                                    <img src="@photo.Url" class="img-fluid rounded-3" alt="@Model.BusinessName" />
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h2 class="h6 fw-bold mb-3">Owner &amp; contact</h2>
+                    <dl class="row small mb-0">
+                        <dt class="col-5 text-muted">Owner</dt><dd class="col-7">@Model.Owner?.FullName</dd>
+                        <dt class="col-5 text-muted">Email</dt><dd class="col-7">@Model.Owner?.Email</dd>
+                        <dt class="col-5 text-muted">Mobile</dt><dd class="col-7">@Model.Owner?.PhoneNumber</dd>
+                        <dt class="col-5 text-muted">Listing phone</dt><dd class="col-7">@Model.ContactPhone</dd>
+                        <dt class="col-5 text-muted">Address</dt><dd class="col-7">@Model.AddressLine</dd>
+                        <dt class="col-5 text-muted">Views</dt><dd class="col-7">@Model.ViewCount</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h2 class="h6 fw-bold mb-3">Moderation decision</h2>
+                    <form asp-action="Moderate" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <label class="form-label small">Status</label>
+                            <select class="form-select" name="status">
+                                @foreach (var status in Enum.GetValues<AdStatus>())
+                                {
+                                    <option value="@status" selected="@(Model.Status == status)">@status</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small">Note to the owner (optional)</label>
+                            <textarea class="form-control" name="note" rows="3" maxlength="500">@Model.ModerationNote</textarea>
+                        </div>
+                        <button class="btn btn-brand w-100 fw-semibold" type="submit">Save decision</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

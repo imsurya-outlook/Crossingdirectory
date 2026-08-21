@@ -1,0 +1,168 @@
+@model AdvertisementFormViewModel
+@{
+    var isEdit = Model.Id > 0;
+    var action = isEdit ? "Edit" : "Create";
+}
+
+<form asp-action="@action" asp-route-id="@(isEdit ? Model.Id : (int?)null)" method="post" enctype="multipart/form-data" novalidate>
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h2 class="h6 fw-bold mb-3">Business details</h2>
+                    <div class="mb-3">
+                        <label asp-for="BusinessName" class="form-label"></label>
+                        <input asp-for="BusinessName" class="form-control" />
+                        <span asp-validation-for="BusinessName" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="CategoryId" class="form-label"></label>
+                        <select asp-for="CategoryId" class="form-select"
+                                asp-items="@(new SelectList(Model.Categories, "Id", "Name"))">
+                            <option value="">Choose a category</option>
+                        </select>
+                        <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label"></label>
+                        <textarea asp-for="Description" class="form-control" rows="5"
+                                  placeholder="What you do, how long you have been operating, what makes your service reliable."></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="h6 fw-bold mb-0">Services offered</h2>
+                        <button type="button" class="btn btn-sm btn-outline-dark" id="addServiceRow">
+                            <i class="bi bi-plus-lg me-1"></i>Add service
+                        </button>
+                    </div>
+                    <span asp-validation-for="Services" class="text-danger small d-block mb-2"></span>
+
+                    <div id="serviceRows">
+                        @for (var i = 0; i < Model.Services.Count; i++)
+                        {
+                            <div class="service-row row g-2 align-items-start mb-2">
+                                <div class="col-12 col-md-4">
+                                    <input name="Services[@i].Name" value="@Model.Services[i].Name" class="form-control" placeholder="Service name" />
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <input name="Services[@i].Details" value="@Model.Services[i].Details" class="form-control" placeholder="Short detail (optional)" />
+                                </div>
+                                <div class="col-6 col-md-2">
+                                    <input name="Services[@i].PriceFrom" value="@Model.Services[i].PriceFrom" type="number" step="1" min="0" class="form-control" placeholder="From" />
+                                </div>
+                                <div class="col-5 col-md-1">
+                                    <input name="Services[@i].PriceUnit" value="@Model.Services[i].PriceUnit" class="form-control" placeholder="Unit" />
+                                </div>
+                                <div class="col-1 d-flex align-items-center">
+                                    <button type="button" class="btn btn-sm btn-link text-danger remove-service-row" title="Remove">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <p class="form-text mb-0">Add every service separately &mdash; visitors search on these.</p>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h2 class="h6 fw-bold mb-3">Photos</h2>
+                    <input asp-for="NewPhotos" type="file" class="form-control" multiple accept="image/jpeg,image/png,image/webp" />
+                    <div class="form-text">Up to 8 photos, 4 MB each (JPEG, PNG, or WebP). The first photo becomes the cover image.</div>
+                    <span asp-validation-for="NewPhotos" class="text-danger small d-block"></span>
+
+                    @if (Model.ExistingPhotos.Any())
+                    {
+                        <hr />
+                        <p class="small text-muted mb-2">Current photos &mdash; tick any you want removed on save.</p>
+                        <div class="row g-2">
+                            @foreach (var photo in Model.ExistingPhotos)
+                            {
+                                <div class="col-6 col-md-3">
+                                    <div class="photo-tile">
+                                        <img src="@photo.Url" alt="@Model.BusinessName" />
+                                        <label class="photo-remove small">
+                                            <input type="checkbox" name="RemovePhotoIds" value="@photo.Id" /> Remove
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h2 class="h6 fw-bold mb-3">Location</h2>
+                    <div class="mb-3">
+                        <label asp-for="AddressLine" class="form-label"></label>
+                        <input asp-for="AddressLine" class="form-control" />
+                        <span asp-validation-for="AddressLine" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Locality" class="form-label"></label>
+                        <input asp-for="Locality" class="form-control" placeholder="Sector 62" />
+                        <span asp-validation-for="Locality" class="text-danger small"></span>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-7 mb-3">
+                            <label asp-for="City" class="form-label"></label>
+                            <input asp-for="City" class="form-control" />
+                            <span asp-validation-for="City" class="text-danger small"></span>
+                        </div>
+                        <div class="col-5 mb-3">
+                            <label asp-for="PostalCode" class="form-label"></label>
+                            <input asp-for="PostalCode" class="form-control" inputmode="numeric" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h2 class="h6 fw-bold mb-3">Contact</h2>
+                    <div class="mb-3">
+                        <label asp-for="ContactPhone" class="form-label"></label>
+                        <input asp-for="ContactPhone" class="form-control" inputmode="tel" />
+                        <span asp-validation-for="ContactPhone" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="WhatsAppNumber" class="form-label"></label>
+                        <input asp-for="WhatsAppNumber" class="form-control" inputmode="tel" />
+                        <span asp-validation-for="WhatsAppNumber" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="ContactEmail" class="form-label"></label>
+                        <input asp-for="ContactEmail" class="form-control" inputmode="email" />
+                        <span asp-validation-for="ContactEmail" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="WebsiteUrl" class="form-label"></label>
+                        <input asp-for="WebsiteUrl" class="form-control" placeholder="https://" />
+                        <span asp-validation-for="WebsiteUrl" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-0">
+                        <label asp-for="OpeningHours" class="form-label"></label>
+                        <input asp-for="OpeningHours" class="form-control" placeholder="Mon-Sat 9:00 - 19:00" />
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-brand btn-lg w-100 fw-semibold">
+                @(isEdit ? "Save and resubmit" : "Submit for review")
+            </button>
+            <a class="btn btn-link w-100 mt-2 text-muted" asp-action="Index">Cancel</a>
+        </div>
+    </div>
+</form>

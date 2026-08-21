@@ -1,0 +1,138 @@
+@model AdminAdListViewModel
+@{ ViewData["Title"] = "Advertisement moderation"; }
+
+<div class="container-fluid px-lg-5 py-4">
+    <h1 class="h4 fw-bold mb-1">Advertisement moderation</h1>
+    <p class="text-muted small mb-4">Every listing in the directory, newest pending submissions first.</p>
+
+    <div class="row g-3 mb-4">
+        @{
+            var tiles = new[]
+            {
+                ("Pending review", Model.PendingCount, "bi-hourglass-split", "warning", (AdStatus?)AdStatus.Pending),
+                ("Approved", Model.ApprovedCount, "bi-check-circle", "success", (AdStatus?)AdStatus.Approved),
+                ("Rejected", Model.RejectedCount, "bi-x-circle", "danger", (AdStatus?)AdStatus.Rejected),
+                ("Suspended", Model.SuspendedCount, "bi-pause-circle", "secondary", (AdStatus?)AdStatus.Suspended)
+            };
+        }
+        @foreach (var (label, count, icon, colour, status) in tiles)
+        {
+            <div class="col-6 col-lg-3">
+                <a class="stat-tile text-decoration-none" asp-action="Ads" asp-route-status="@status">
+                    <span class="stat-icon text-@colour"><i class="bi @icon"></i></span>
+                    <span class="stat-value">@count</span>
+                    <span class="stat-label">@label</span>
+                </a>
+            </div>
+        }
+    </div>
+
+    <form asp-action="Ads" method="get" class="row g-2 mb-3">
+        <div class="col-12 col-md-5">
+            <input class="form-control" name="q" value="@Model.Query" placeholder="Search business, locality, or owner email" />
+        </div>
+        <div class="col-8 col-md-3">
+            <select class="form-select" name="status">
+                <option value="">All statuses</option>
+                @foreach (var status in Enum.GetValues<AdStatus>())
+                {
+                    <option value="@status" selected="@(Model.Status == status)">@status</option>
+                }
+            </select>
+        </div>
+        <div class="col-4 col-md-2">
+            <button class="btn btn-dark w-100" type="submit">Filter</button>
+        </div>
+        <div class="col-12 col-md-2">
+            <a class="btn btn-outline-secondary w-100" asp-action="Ads">Reset</a>
+        </div>
+    </form>
+
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 admin-table">
+                <thead class="table-light">
+                    <tr>
+                        <th>Business</th>
+                        <th class="d-none d-md-table-cell">Category</th>
+                        <th class="d-none d-lg-table-cell">Locality</th>
+                        <th class="d-none d-lg-table-cell">Owner</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var ad in Model.Results.Items)
+                {
+                    var badgeClass = ad.Status switch
+                    {
+                        AdStatus.Approved => "bg-success",
+                        AdStatus.Pending => "bg-warning text-dark",
+                        AdStatus.Rejected => "bg-danger",
+                        _ => "bg-secondary"
+                    };
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">
+                                <a class="text-decoration-none text-ink" asp-action="Details" asp-route-id="@ad.Id">@ad.BusinessName</a>
+                            </div>
+                            <div class="small text-muted">
+                                @ad.ServiceOfferings.Count service(s) &middot; @ad.Photos.Count photo(s) &middot; @ad.CreatedUtc.ToString("dd MMM yyyy")
+                            </div>
+                        </td>
+                        <td class="d-none d-md-table-cell small">@ad.Category?.Name</td>
+                        <td class="d-none d-lg-table-cell small">@ad.Locality</td>
+                        <td class="d-none d-lg-table-cell small">@ad.Owner?.Email</td>
+                        <td>
+                            <span class="badge @badgeClass">@ad.Status</span>
+                            @if (ad.IsFeatured)
+                            {
+                                <span class="badge bg-brand text-dark">Featured</span>
+                            }
+                        </td>
+                        <td class="text-end text-nowrap">
+                            @if (ad.Status != AdStatus.Approved)
+                            {
+                                <form asp-action="Moderate" asp-route-id="@ad.Id" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="status" value="@AdStatus.Approved" />
+                                    <button class="btn btn-sm btn-success" type="submit">Approve</button>
+                                </form>
+                            }
+                            @if (ad.Status != AdStatus.Rejected)
+                            {
+                                <form asp-action="Moderate" asp-route-id="@ad.Id" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="status" value="@AdStatus.Rejected" />
+                                    <button class="btn btn-sm btn-outline-danger" type="submit">Reject</button>
+                                </form>
+                            }
+                            <a class="btn btn-sm btn-outline-dark" asp-action="Details" asp-route-id="@ad.Id">Review</a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (Model.Results.TotalPages > 1)
+    {
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(Model.Results.HasPrevious ? "" : "disabled")">
+                    <a class="page-link" asp-action="Ads" asp-route-q="@Model.Query" asp-route-status="@Model.Status" asp-route-page="@(Model.Page - 1)">Previous</a>
+                </li>
+                @for (var i = 1; i <= Model.Results.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.Page ? "active" : "")">
+                        <a class="page-link" asp-action="Ads" asp-route-q="@Model.Query" asp-route-status="@Model.Status" asp-route-page="@i">@i</a>
+                    </li>
+                }
+                <li class="page-item @(Model.Results.HasNext ? "" : "disabled")">
+                    <a class="page-link" asp-action="Ads" asp-route-q="@Model.Query" asp-route-status="@Model.Status" asp-route-page="@(Model.Page + 1)">Next</a>
+                </li>
+            </ul>
+        </nav>
+    }
+</div>

@@ -1,0 +1,6 @@
+wwwroot\css\site.css
+wwwroot\js\ad-form.js
+wwwroot\uploads\ads\2026-08\f86529617e1743f38b1883ca97d46940.jpg
+wwwroot\uploads\ads\2026-08\31205cc3b27642988ac91cc46229c2b1.png
+C:\Users\imsur\Downloads\YellowPages-Local-DotNet10\YellowPages.Local\src\YellowPages.Web\wwwroot\css\site.css
+C:\Users\imsur\Downloads\YellowPages-Local-DotNet10\YellowPages.Local\src\YellowPages.Web\wwwroot\js\ad-form.js

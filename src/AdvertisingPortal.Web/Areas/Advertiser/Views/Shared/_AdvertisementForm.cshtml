@@ -1,0 +1,122 @@
+@model AdvertisementFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+<div class="row g-4">
+    <div class="col-12 col-lg-8">
+        <div class="panel p-4">
+            <h2 class="h5 mb-3">Advertisement details</h2>
+
+            <div class="mb-3">
+                <label asp-for="Title" class="form-label"></label>
+                <input asp-for="Title" class="form-control" placeholder="e.g. Sharma Plumbing Services" />
+                <span asp-validation-for="Title" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="6" placeholder="Describe your services, experience and working hours"></textarea>
+                <span asp-validation-for="Description" class="text-danger small"></span>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <label asp-for="CategoryId" class="form-label"></label>
+                    <select asp-for="CategoryId" class="form-select" asp-items="Model.CategoryOptions">
+                        <option value="">Select a category</option>
+                    </select>
+                    <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label asp-for="LocalityId" class="form-label"></label>
+                    <select asp-for="LocalityId" class="form-select" asp-items="Model.LocalityOptions"></select>
+                    <span asp-validation-for="LocalityId" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="mb-3 mt-3">
+                <label asp-for="AddressLine" class="form-label"></label>
+                <input asp-for="AddressLine" class="form-control" placeholder="Shop 12, Cross River Mall Road" />
+                <span asp-validation-for="AddressLine" class="text-danger small"></span>
+            </div>
+        </div>
+
+        <div class="panel p-4 mt-4">
+            <h2 class="h5 mb-1">Photos</h2>
+            <p class="text-muted small">Up to 10 images. JPG, PNG or WebP, max 5 MB each. The first image becomes the cover photo.</p>
+
+            <input type="file" name="Images" class="form-control js-image-input" multiple accept="image/jpeg,image/png,image/webp" />
+            <span asp-validation-for="Images" class="text-danger small"></span>
+            <div class="preview-grid mt-3 js-image-preview"></div>
+
+            @if (Model.ExistingImages.Any())
+            {
+                <hr class="my-4" />
+                <h3 class="h6">Current images</h3>
+                <div class="row g-3 mt-1">
+                    @foreach (var image in Model.ExistingImages)
+                    {
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="image-tile @(image.IsPrimary ? "is-primary" : "")">
+                                <img src="@image.ImageUrl" alt="Advertisement image" />
+                                @if (image.IsPrimary)
+                                {
+                                    <span class="image-tile-flag">Cover</span>
+                                }
+                                <div class="image-tile-actions">
+                                    @if (!image.IsPrimary)
+                                    {
+                                        <button class="btn btn-sm btn-light" type="submit" formaction="@Url.Action("SetPrimaryImage", new { area = "Advertiser", imageId = image.Id, advertisementId = Model.Id })" formmethod="post">Make cover</button>
+                                    }
+                                    <button class="btn btn-sm btn-outline-danger" type="submit" formaction="@Url.Action("DeleteImage", new { area = "Advertiser", imageId = image.Id, advertisementId = Model.Id })" formmethod="post">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="panel p-4">
+            <h2 class="h5 mb-3">Contact information</h2>
+
+            <div class="mb-3">
+                <label asp-for="ContactName" class="form-label"></label>
+                <input asp-for="ContactName" class="form-control" />
+                <span asp-validation-for="ContactName" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="PhoneNumber" class="form-label"></label>
+                <input asp-for="PhoneNumber" class="form-control" placeholder="9876543210" />
+                <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="WebsiteUrl" class="form-label"></label>
+                <input asp-for="WebsiteUrl" class="form-control" placeholder="https://example.com" />
+                <span asp-validation-for="WebsiteUrl" class="text-danger small"></span>
+            </div>
+        </div>
+
+        <div class="panel p-4 mt-4">
+            <h2 class="h6 mb-2">Publishing</h2>
+            <p class="text-muted small mb-3">
+                Submitted advertisements go to the admin moderation queue. Approved listings appear publicly.
+                @if (Model.IsEdit)
+                {
+                    <span class="d-block mt-2">Current status: <span class="status-badge status-@Model.Status.ToString().ToLower()">@Model.Status</span></span>
+                }
+            </p>
+            <div class="d-grid gap-2">
+                <button class="btn btn-brand" type="submit" name="submitAction" value="submit">Submit for approval</button>
+                <button class="btn btn-outline-brand" type="submit" name="submitAction" value="draft">Save as draft</button>
+            </div>
+        </div>
+    </div>
+</div>

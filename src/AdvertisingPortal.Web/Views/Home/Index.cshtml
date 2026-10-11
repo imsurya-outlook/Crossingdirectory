@@ -1,0 +1,131 @@
+@model HomeViewModel
+@{
+    ViewData["Title"] = "Find trusted local businesses";
+}
+
+<section class="hero">
+    <div class="container hero-inner">
+        <span class="hero-eyebrow">Now live in @Model.DefaultLocalityName</span>
+        <h1 class="hero-title">Find trusted local businesses near you</h1>
+        <p class="hero-subtitle">Plumbers, doctors, lawyers, restaurants and more &mdash; discovered in seconds, contacted in one tap.</p>
+
+        <form class="search-panel" asp-controller="Advertisements" asp-action="Index" method="get">
+            <div class="row g-2">
+                <div class="col-12 col-lg-5">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <input class="form-control border-start-0" type="search" name="keyword" placeholder="What are you looking for?" />
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <select class="form-select form-select-lg" name="categoryId">
+                        <option value="">All categories</option>
+                        @foreach (var category in Model.Categories)
+                        {
+                            <option value="@category.Id">@category.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <select class="form-select form-select-lg" name="localityId">
+                        @foreach (var locality in Model.Localities)
+                        {
+                            <option value="@locality.Id" selected="@(locality.Id == Model.DefaultLocalityId)">@locality.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12 col-lg-2">
+                    <button class="btn btn-brand btn-lg w-100" type="submit">Search</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<section class="container section">
+    <div class="section-head">
+        <h2 class="section-title">Browse by category</h2>
+        <a class="link-brand" asp-controller="Advertisements" asp-action="Index">See all ads <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="category-grid">
+        @foreach (var category in Model.Categories)
+        {
+            <a class="category-tile" asp-controller="Advertisements" asp-action="ByCategory" asp-route-slug="@category.Slug">
+                <span class="category-icon"><i class="bi bi-grid-1x2"></i></span>
+                <span class="category-name">@category.Name</span>
+                <span class="category-count">@category.AdvertisementCount listings</span>
+            </a>
+        }
+    </div>
+</section>
+
+<section class="featured-band">
+    <div class="container">
+        <div class="featured-head">
+            <div>
+                <span class="featured-eyebrow"><i class="bi bi-lightning-charge-fill"></i> Sponsored placement</span>
+                <h2 class="featured-title">Featured businesses</h2>
+                <p class="featured-subtitle mb-0">Premium listings promoted across Crossing Directory.</p>
+            </div>
+            <a class="btn btn-brand" asp-controller="Account" asp-action="Register">Feature my business</a>
+        </div>
+
+        @if (Model.Featured.Any())
+        {
+            <div class="row g-4 featured-grid">
+                @foreach (var ad in Model.Featured)
+                {
+                    <partial name="_AdCard" model="ad" />
+                }
+            </div>
+        }
+        else
+        {
+            <div class="featured-empty">
+                <i class="bi bi-lightning-charge"></i>
+                <div>
+                    <div class="fw-semibold">This premium slot is open</div>
+                    <div class="featured-subtitle">Approved ads marked as featured by the admin appear here, above the regular listings.</div>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+<section class="container section">
+    <div class="section-head">
+        <div>
+            <h2 class="section-title">Recent ads</h2>
+            <p class="text-muted small mb-0">Verified businesses first, then the highest rated.</p>
+        </div>
+        <a class="link-brand" asp-controller="Advertisements" asp-action="Index">Browse all <i class="bi bi-arrow-right"></i></a>
+    </div>
+    @if (Model.Recent.Any())
+    {
+        <div class="row g-4">
+            @foreach (var ad in Model.Recent)
+            {
+                <partial name="_AdCard" model="ad" />
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="bi bi-inboxes"></i>
+            <h3>No live advertisements yet</h3>
+            <p>Sign in as an advertiser, post an ad, then approve it from the admin dashboard to see it here.</p>
+            <a class="btn btn-brand" asp-controller="Account" asp-action="Register">List your business</a>
+        </div>
+    }
+</section>
+
+<section class="container section">
+    <div class="cta-panel">
+        <div>
+            <h2 class="h3 mb-2">Advertise your business in @Model.DefaultLocalityName</h2>
+            <p class="mb-0 text-muted">Create a listing with up to 10 photos, earn a verified star, collect service ratings, and track views and clicks.</p>
+        </div>
+        <a class="btn btn-brand btn-lg" asp-controller="Account" asp-action="Register">Get started free</a>
+    </div>
+</section>

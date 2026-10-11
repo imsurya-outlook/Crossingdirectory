@@ -1,0 +1,101 @@
+@using Microsoft.AspNetCore.Identity
+@using AdvertisingPortal.Domain.Entities
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Crossing Directory</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+<nav class="navbar navbar-expand-lg app-navbar sticky-top" data-bs-theme="dark">
+    <div class="container">
+        <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+            <span class="brand-mark"><i class="bi bi-signpost-split-fill"></i></span>
+            <span class="brand-text">Crossing<span class="brand-accent">Directory</span></span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">Home</a></li>
+                <li class="nav-item"><a class="nav-link" asp-controller="Advertisements" asp-action="Index">Browse ads</a></li>
+            </ul>
+            <ul class="navbar-nav align-items-lg-center gap-lg-2">
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    if (User.IsInRole(RoleNames.Admin))
+                    {
+                        <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Admin</a></li>
+                    }
+                    <li class="nav-item"><a class="nav-link" asp-area="Advertiser" asp-controller="Dashboard" asp-action="Index">My dashboard</a></li>
+                    <li class="nav-item">
+                        <a class="btn btn-brand btn-sm" asp-area="Advertiser" asp-controller="Advertisements" asp-action="Create">
+                            <i class="bi bi-plus-lg"></i> Post an ad
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-link nav-link px-2">Sign out</button>
+                        </form>
+                    </li>
+                }
+                else
+                {
+                    <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Login">Sign in</a></li>
+                    <li class="nav-item">
+                        <a class="btn btn-brand btn-sm" asp-controller="Account" asp-action="Register">
+                            <i class="bi bi-megaphone"></i> List your business
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<main>
+    <div class="container">
+        @if (TempData["Success"] is string success)
+        {
+            <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                <i class="bi bi-check-circle me-1"></i> @success
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["Error"] is string error)
+        {
+            <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                <i class="bi bi-exclamation-triangle me-1"></i> @error
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+    </div>
+    @RenderBody()
+</main>
+
+<footer class="app-footer mt-5">
+    <div class="container py-4 d-flex flex-wrap justify-content-between gap-3">
+        <div>
+            <div class="footer-brand">
+                <span class="brand-mark brand-mark-sm"><i class="bi bi-signpost-split-fill"></i></span>
+                Crossing<span class="brand-accent">Directory</span>
+            </div>
+            <div class="footer-note">Local business advertising for Crossing Republic</div>
+        </div>
+        <div class="footer-note">&copy; @DateTime.UtcNow.Year Crossing Directory. MVP build.</div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

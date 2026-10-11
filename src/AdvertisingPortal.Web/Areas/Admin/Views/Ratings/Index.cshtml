@@ -1,0 +1,80 @@
+@model List<AdvertisementRatingDto>
+@{
+    ViewData["Title"] = "Ratings";
+    var advertisementId = ViewData["AdvertisementId"] as int?;
+    var average = Model.Any() ? Model.Average(r => r.Score) : 0;
+}
+
+<section class="page-head">
+    <div class="container d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <h1 class="h2 mb-1">Service ratings</h1>
+            <p class="text-muted mb-0">
+                @Model.Count rating(s)@(advertisementId.HasValue ? " for one advertisement" : " across all advertisements")
+                @if (Model.Any())
+                {
+                    <span>&middot; average @average.ToString("0.0")</span>
+                }
+            </p>
+        </div>
+        @if (advertisementId.HasValue)
+        {
+            <a class="btn btn-light" asp-action="Index">Show all ratings</a>
+        }
+    </div>
+</section>
+
+<div class="container section">
+    <partial name="_AdminNav" />
+
+    @if (Model.Any())
+    {
+        <div class="panel mt-3">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Advertisement</th>
+                            <th>Rating</th>
+                            <th>Comment</th>
+                            <th>Reviewer</th>
+                            <th>Date</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var rating in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@rating.AdvertisementTitle</td>
+                            <td>
+                                <partial name="_RatingStars" model="(double)rating.Score" />
+                                <span class="rating-value">@rating.Score</span>
+                            </td>
+                            <td class="small">@(string.IsNullOrWhiteSpace(rating.Comment) ? "-" : rating.Comment)</td>
+                            <td class="small">@rating.ReviewerName</td>
+                            <td class="small text-muted">@rating.CreatedOnUtc.ToString("dd MMM yyyy")</td>
+                            <td class="text-end">
+                                <form asp-action="Delete" method="post" onsubmit="return confirm('Remove this rating?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@rating.Id" />
+                                    <input type="hidden" name="advertisementId" value="@advertisementId" />
+                                    <button class="btn btn-sm btn-outline-danger" type="submit">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state mt-4">
+            <i class="bi bi-star"></i>
+            <h3>No ratings yet</h3>
+            <p>Ratings appear here as soon as signed-in users rate an approved advertisement.</p>
+        </div>
+    }
+</div>

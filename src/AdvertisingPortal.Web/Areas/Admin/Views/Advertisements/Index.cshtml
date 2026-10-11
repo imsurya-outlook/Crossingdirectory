@@ -1,0 +1,154 @@
+@model AdminAdvertisementListViewModel
+@{
+    ViewData["Title"] = "Manage advertisements";
+    var statuses = Enum.GetValues<AdvertisementStatus>();
+}
+
+<section class="page-head">
+    <div class="container">
+        <h1 class="h2 mb-1">Advertisements</h1>
+        <p class="text-muted mb-0">@Model.Advertisements.Count listing(s)@(Model.Status.HasValue ? " with status " + Model.Status : "")</p>
+    </div>
+</section>
+
+<div class="container section">
+    <partial name="_AdminNav" />
+
+    <div class="filter-bar mt-3">
+        <div class="d-flex flex-wrap gap-2">
+            <a class="chip-link @(Model.Status == null ? "active" : "")" asp-action="Index">All</a>
+            @foreach (var status in statuses)
+            {
+                <a class="chip-link @(Model.Status == status ? "active" : "")" asp-action="Index" asp-route-status="@status">@status</a>
+            }
+        </div>
+    </div>
+
+    @if (Model.Advertisements.Any())
+    {
+        <div class="panel mt-4">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Advertisement</th>
+                            <th>Owner</th>
+                            <th>Status</th>
+                            <th>Rating</th>
+                            <th class="text-end">Views</th>
+                            <th class="text-end">Clicks</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var ad in Model.Advertisements)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">
+                                    @ad.Title
+                                    @if (ad.IsVerified)
+                                    {
+                                        <i class="bi bi-star-fill verified-inline" title="Verified"></i>
+                                    }
+                                </div>
+                                <div class="small text-muted">@ad.CategoryName &middot; @ad.LocalityName &middot; @ad.ImageCount image(s)</div>
+                                @if (!string.IsNullOrEmpty(ad.ModerationRemarks))
+                                {
+                                    <div class="small text-danger">Remarks: @ad.ModerationRemarks</div>
+                                }
+                            </td>
+                            <td class="small">@ad.OwnerEmail</td>
+                            <td>
+                                <span class="status-badge status-@ad.Status.ToString().ToLower()">@ad.Status</span>
+                                @if (ad.IsFeatured)
+                                {
+                                    <span class="status-badge status-featured mt-1">Featured</span>
+                                }
+                                @if (ad.IsVerified)
+                                {
+                                    <span class="status-badge status-verified mt-1">Verified</span>
+                                }
+                            </td>
+                            <td>
+                                @if (ad.RatingCount > 0)
+                                {
+                                    <partial name="_RatingStars" model="ad.AverageRating" />
+                                    <a class="d-block small link-brand" asp-controller="Ratings" asp-action="Index" asp-route-advertisementId="@ad.Id">
+                                        @ad.AverageRating.ToString("0.0") from @ad.RatingCount
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">No ratings</span>
+                                }
+                            </td>
+                            <td class="text-end">@ad.ViewCount</td>
+                            <td class="text-end">@ad.DetailsClickCount</td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-1 justify-content-end">
+                                    @if (ad.Status != AdvertisementStatus.Approved)
+                                    {
+                                        <form asp-action="Approve" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@ad.Id" />
+                                            <input type="hidden" name="status" value="@Model.Status" />
+                                            <button class="btn btn-sm btn-success" type="submit">Approve</button>
+                                        </form>
+                                    }
+                                    @if (ad.Status != AdvertisementStatus.Rejected)
+                                    {
+                                        <button class="btn btn-sm btn-outline-danger" type="button" data-bs-toggle="collapse" data-bs-target="#reject-@ad.Id">Reject</button>
+                                    }
+                                    <form asp-action="ToggleVerified" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@ad.Id" />
+                                        <input type="hidden" name="verified" value="@((!ad.IsVerified).ToString().ToLower())" />
+                                        <input type="hidden" name="status" value="@Model.Status" />
+                                        <button class="btn btn-sm @(ad.IsVerified ? "btn-light" : "btn-brand")" type="submit">
+                                            <i class="bi bi-star@(ad.IsVerified ? "" : "-fill")"></i>
+                                            @(ad.IsVerified ? "Unverify" : "Verify")
+                                        </button>
+                                    </form>
+                                    <form asp-action="ToggleFeatured" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@ad.Id" />
+                                        <input type="hidden" name="featured" value="@((!ad.IsFeatured).ToString().ToLower())" />
+                                        <input type="hidden" name="status" value="@Model.Status" />
+                                        <button class="btn btn-sm btn-outline-brand" type="submit">@(ad.IsFeatured ? "Unfeature" : "Feature")</button>
+                                    </form>
+                                    <form asp-action="ToggleActive" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@ad.Id" />
+                                        <input type="hidden" name="active" value="@((!ad.IsActive).ToString().ToLower())" />
+                                        <input type="hidden" name="status" value="@Model.Status" />
+                                        <button class="btn btn-sm btn-light" type="submit">@(ad.IsActive ? "Deactivate" : "Activate")</button>
+                                    </form>
+                                    <a class="btn btn-sm btn-light" asp-area="" asp-controller="Advertisements" asp-action="Details" asp-route-slug="@ad.Slug" target="_blank">Preview</a>
+                                </div>
+                                <div class="collapse mt-2" id="reject-@ad.Id">
+                                    <form asp-action="Reject" method="post" class="d-flex gap-2">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@ad.Id" />
+                                        <input type="hidden" name="status" value="@Model.Status" />
+                                        <input class="form-control form-control-sm" name="remarks" placeholder="Reason for rejection" />
+                                        <button class="btn btn-sm btn-danger" type="submit">Confirm</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state mt-4">
+            <i class="bi bi-clipboard-check"></i>
+            <h3>Nothing to moderate</h3>
+            <p>There are no advertisements with this status.</p>
+        </div>
+    }
+</div>

@@ -1,0 +1,59 @@
+@model AdvertisementListItemDto
+<div class="col-12 col-md-6 col-lg-4">
+    <article class="ad-card h-100 @(Model.IsFeatured ? "is-featured" : "")">
+        <a class="ad-card-media" asp-controller="Advertisements" asp-action="Click" asp-route-id="@Model.Id">
+            @if (!string.IsNullOrEmpty(Model.PrimaryImageUrl))
+            {
+                <img src="@Model.PrimaryImageUrl" alt="@Model.Title" loading="lazy" />
+            }
+            else
+            {
+                <div class="ad-card-placeholder"><i class="bi bi-image"></i></div>
+            }
+            <div class="media-flags">
+                @if (Model.IsFeatured)
+                {
+                    <span class="flag flag-featured"><i class="bi bi-lightning-charge-fill"></i> Featured</span>
+                }
+                @if (Model.IsVerified)
+                {
+                    <span class="flag flag-verified"><i class="bi bi-star-fill"></i> Verified</span>
+                }
+            </div>
+        </a>
+        <div class="ad-card-body">
+            <div class="chip-row">
+                <span class="chip chip-primary">@Model.CategoryName</span>
+                <span class="chip"><i class="bi bi-geo-alt"></i> @Model.LocalityName</span>
+            </div>
+            <h3 class="ad-card-title">
+                <a asp-controller="Advertisements" asp-action="Click" asp-route-id="@Model.Id">
+                    @Model.Title
+                    @if (Model.IsVerified)
+                    {
+                        <i class="bi bi-star-fill verified-inline" title="Verified by Crossing Directory"></i>
+                    }
+                </a>
+            </h3>
+            <div class="rating-row">
+                <partial name="_RatingStars" model="Model.AverageRating" />
+                @if (Model.RatingCount > 0)
+                {
+                    <span class="rating-value">@Model.AverageRating.ToString("0.0")</span>
+                    <span class="rating-count">(@Model.RatingCount)</span>
+                }
+                else
+                {
+                    <span class="rating-count">No ratings yet</span>
+                }
+            </div>
+            <p class="ad-card-text">@Model.ShortDescription</p>
+            <div class="ad-card-footer">
+                <div class="small text-muted"><i class="bi bi-person"></i> @Model.ContactName</div>
+                <a class="btn btn-sm btn-outline-brand" asp-controller="Advertisements" asp-action="Click" asp-route-id="@Model.Id">
+                    View details <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </article>
+</div>

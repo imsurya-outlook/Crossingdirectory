@@ -1,0 +1,187 @@
+@model AdvertisementDetailsDto
+@using Microsoft.AspNetCore.Identity
+@using AdvertisingPortal.Domain.Entities
+@inject SignInManager<ApplicationUser> SignInManager
+@{
+    ViewData["Title"] = Model.Title;
+    var primary = Model.Images.FirstOrDefault();
+}
+
+<div class="container section">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Home</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Advertisements" asp-action="Index">Ads</a></li>
+            <li class="breadcrumb-item active">@Model.Title</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-8">
+            <div class="detail-card">
+                <div class="gallery">
+                    @if (primary is not null)
+                    {
+                        <img id="galleryMain" class="gallery-main" src="@primary.ImageUrl" alt="@Model.Title" />
+                    }
+                    else
+                    {
+                        <div class="gallery-main gallery-empty"><i class="bi bi-image"></i></div>
+                    }
+
+                    @if (Model.Images.Count > 1)
+                    {
+                        <div class="gallery-thumbs">
+                            @foreach (var image in Model.Images)
+                            {
+                                <button type="button" class="gallery-thumb js-gallery-thumb" data-image-url="@image.ImageUrl">
+                                    <img src="@image.ImageUrl" alt="@Model.Title" />
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="detail-body">
+                    <div class="chip-row">
+                        <span class="chip chip-primary">@Model.CategoryName</span>
+                        <span class="chip"><i class="bi bi-geo-alt"></i> @Model.LocalityName</span>
+                        @if (Model.IsFeatured)
+                        {
+                            <span class="chip chip-accent"><i class="bi bi-lightning-charge-fill"></i> Featured</span>
+                        }
+                        @if (Model.IsVerified)
+                        {
+                            <span class="chip chip-verified"><i class="bi bi-star-fill"></i> Verified</span>
+                        }
+                    </div>
+
+                    <h1 class="h2 mt-3 mb-2">
+                        @Model.Title
+                        @if (Model.IsVerified)
+                        {
+                            <i class="bi bi-star-fill verified-inline" title="Personally verified by our team"></i>
+                        }
+                    </h1>
+
+                    <div class="rating-row mb-2">
+                        <partial name="_RatingStars" model="Model.AverageRating" />
+                        @if (Model.RatingCount > 0)
+                        {
+                            <span class="rating-value">@Model.AverageRating.ToString("0.0")</span>
+                            <span class="rating-count">from @Model.RatingCount rating(s)</span>
+                        }
+                        else
+                        {
+                            <span class="rating-count">No service ratings yet</span>
+                        }
+                    </div>
+
+                    <div class="text-muted small mb-3">
+                        <i class="bi bi-eye"></i> @Model.ViewCount views
+                        <span class="mx-2">&middot;</span>
+                        <i class="bi bi-cursor"></i> @Model.DetailsClickCount clicks
+                        <span class="mx-2">&middot;</span>
+                        Listed @Model.CreatedOnUtc.ToString("dd MMM yyyy")
+                        @if (Model.IsVerified && Model.VerifiedOnUtc.HasValue)
+                        {
+                            <span class="mx-2">&middot;</span>
+                            <span>Verified @Model.VerifiedOnUtc.Value.ToString("dd MMM yyyy")</span>
+                        }
+                    </div>
+
+                    <p class="detail-description">@Model.Description</p>
+
+                    <h2 class="h5 mt-4">Address</h2>
+                    <p class="mb-0"><i class="bi bi-geo-alt text-brand"></i> @Model.AddressLine, @Model.LocalityName</p>
+                </div>
+            </div>
+
+            <div class="panel p-4 mt-4">
+                <h2 class="h5 mb-1">Service ratings</h2>
+                <p class="text-muted small">Rate this business on the service you received.</p>
+
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    <form asp-action="Rate" asp-route-slug="@Model.Slug" method="post" class="rating-form">
+                        @Html.AntiForgeryToken()
+                        <div class="star-input">
+                            @for (var i = 5; i >= 1; i--)
+                            {
+                                <input type="radio" name="score" value="@i" id="score-@i" checked="@(Model.MyScore == i)" required />
+                                <label for="score-@i" title="@i star(s)"><i class="bi bi-star-fill"></i></label>
+                            }
+                        </div>
+                        <textarea class="form-control mt-3" name="comment" rows="3" maxlength="600" placeholder="Optional: describe the service you received"></textarea>
+                        <button class="btn btn-brand mt-3" type="submit">
+                            @(Model.MyScore.HasValue ? "Update my rating" : "Submit rating")
+                        </button>
+                        @if (Model.MyScore.HasValue)
+                        {
+                            <span class="text-muted small ms-2">You rated this @Model.MyScore star(s).</span>
+                        }
+                    </form>
+                }
+                else
+                {
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <a class="btn btn-outline-brand btn-sm" asp-controller="Account" asp-action="Login">Sign in to rate</a>
+                        <span class="text-muted small">Ratings are limited to one per account so averages stay meaningful.</span>
+                    </div>
+                }
+
+                @if (Model.Reviews.Any())
+                {
+                    <hr class="my-4" />
+                    <div class="review-list">
+                        @foreach (var review in Model.Reviews)
+                        {
+                            <div class="review-item">
+                                <div class="d-flex justify-content-between align-items-center gap-2">
+                                    <span class="fw-semibold">@review.ReviewerName</span>
+                                    <span class="text-muted small">@review.CreatedOnUtc.ToString("dd MMM yyyy")</span>
+                                </div>
+                                <partial name="_RatingStars" model="(double)review.Score" />
+                                @if (!string.IsNullOrWhiteSpace(review.Comment))
+                                {
+                                    <p class="mb-0 mt-1">@review.Comment</p>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+            <aside class="contact-card">
+                <h2 class="h5 mb-3">Contact</h2>
+                <div class="contact-row"><span class="contact-label">Person</span><span>@Model.ContactName</span></div>
+                <div class="contact-row"><span class="contact-label">Phone</span><span>@Model.PhoneNumber</span></div>
+                @if (!string.IsNullOrEmpty(Model.Email))
+                {
+                    <div class="contact-row"><span class="contact-label">Email</span><span>@Model.Email</span></div>
+                }
+                <div class="d-grid gap-2 mt-3">
+                    <a class="btn btn-brand" href="tel:@Model.PhoneNumber"><i class="bi bi-telephone"></i> Call now</a>
+                    @if (!string.IsNullOrEmpty(Model.Email))
+                    {
+                        <a class="btn btn-outline-brand" href="mailto:@Model.Email"><i class="bi bi-envelope"></i> Send email</a>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.WebsiteUrl))
+                    {
+                        <a class="btn btn-outline-brand" href="@Model.WebsiteUrl" target="_blank" rel="noopener"><i class="bi bi-globe"></i> Visit website</a>
+                    }
+                </div>
+
+                @if (Model.IsVerified)
+                {
+                    <div class="verified-note mt-3">
+                        <i class="bi bi-star-fill"></i>
+                        <span>This business was personally verified by the Crossing Directory team.</span>
+                    </div>
+                }
+            </aside>
+        </div>
+    </div>
+</div>

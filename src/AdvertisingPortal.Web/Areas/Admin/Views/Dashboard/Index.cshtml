@@ -1,0 +1,69 @@
+@model AdminDashboardDto
+@{
+    ViewData["Title"] = "Admin overview";
+}
+
+<section class="page-head">
+    <div class="container">
+        <h1 class="h2 mb-1">Admin overview</h1>
+        <p class="text-muted mb-0">Moderate listings, verify businesses and manage the directory taxonomy.</p>
+    </div>
+</section>
+
+<div class="container section">
+    <partial name="_AdminNav" />
+
+    <div class="row g-3 mt-3">
+        <div class="col-6 col-lg-3">
+            <div class="stat-card"><span class="stat-label">Total ads</span><span class="stat-value">@Model.TotalAdvertisements</span></div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card stat-warning"><span class="stat-label">Pending approval</span><span class="stat-value">@Model.PendingAdvertisements</span></div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card"><span class="stat-label">Approved</span><span class="stat-value">@Model.ApprovedAdvertisements</span></div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card stat-accent"><span class="stat-label">Verified</span><span class="stat-value">@Model.VerifiedAdvertisements</span></div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card"><span class="stat-label">Featured</span><span class="stat-value">@Model.FeaturedAdvertisements</span></div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <span class="stat-label">Avg rating</span>
+                <span class="stat-value">@(Model.TotalRatings == 0 ? "-" : Model.AverageRating.ToString("0.0"))</span>
+                <span class="stat-hint">@Model.TotalRatings rating(s)</span>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card"><span class="stat-label">Total views</span><span class="stat-value">@Model.TotalViews</span></div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card"><span class="stat-label">Details clicks</span><span class="stat-value">@Model.TotalDetailsClicks</span></div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card"><span class="stat-label">Categories</span><span class="stat-value">@Model.TotalCategories</span></div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card"><span class="stat-label">Localities</span><span class="stat-value">@Model.TotalLocalities</span></div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card"><span class="stat-label">Advertisers</span><span class="stat-value">@Model.TotalAdvertisers</span></div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card"><span class="stat-label">Rejected</span><span class="stat-value">@Model.RejectedAdvertisements</span></div>
+        </div>
+    </div>
+
+    <div class="panel p-4 mt-4 d-flex flex-wrap gap-2 justify-content-between align-items-center">
+        <div>
+            <h2 class="h5 mb-1">Moderation queue</h2>
+            <p class="text-muted small mb-0">@Model.PendingAdvertisements advertisement(s) waiting for review.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-brand" asp-area="Admin" asp-controller="Ratings" asp-action="Index">See ratings</a>
+            <a class="btn btn-brand" asp-area="Admin" asp-controller="Advertisements" asp-action="Index" asp-route-status="@AdvertisementStatus.PendingApproval">Review pending ads</a>
+        </div>
+    </div>
+</div>

@@ -29,4 +29,5 @@ public interface IAdvertisementService
     Task SetActiveAsync(int id, bool isActive);
     Task<AdminDashboardDto> GetAdminDashboardAsync();
     Task<string?> GetSlugAsync(int id);
+    Task<string?> GetSlugByShopIdAsync(int shopId);
 }

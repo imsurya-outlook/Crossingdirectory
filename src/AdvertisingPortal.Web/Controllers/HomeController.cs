@@ -17,15 +17,22 @@ public class HomeController : Controller
         _localities = localities;
     }
 
-    public async Task<IActionResult> Index([FromQuery(Name = "ShopID")] int? shopId)
+    [HttpGet("")]
+    public async Task<IActionResult> RouteByShopId([FromQuery(Name = "ShopID")] int? shopId)
     {
         if (shopId.HasValue)
         {
-            var slug = await _ads.GetSlugAsync(shopId.Value);
+            var slug = await _ads.GetSlugByShopIdAsync(shopId.Value);
             if (slug is null) return NotFound();
 
             return RedirectToAction("Details", "Advertisements", new { slug });
         }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    public async Task<IActionResult> Index()
+    {
 
         var localities = await _localities.GetActiveAsync();
         var defaultId = await _localities.GetDefaultLocalityIdAsync();

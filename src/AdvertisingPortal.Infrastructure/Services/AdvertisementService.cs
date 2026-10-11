@@ -464,6 +464,12 @@ public class AdvertisementService : IAdvertisementService
     public async Task<string?> GetSlugAsync(int id)
         => await _db.Advertisements.Where(a => a.Id == id).Select(a => a.Slug).FirstOrDefaultAsync();
 
+    public async Task<string?> GetSlugByShopIdAsync(int shopId)
+        => await _db.Advertisements
+            .Where(a => a.ShopId == shopId)
+            .Select(a => a.Slug)
+            .FirstOrDefaultAsync();
+
     private string? PrimaryUrl(Advertisement ad)
     {
         var image = ad.Images.OrderByDescending(i => i.IsPrimary).ThenBy(i => i.DisplayOrder).FirstOrDefault();

@@ -43,6 +43,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         {
             e.Property(x => x.Title).HasMaxLength(150).IsRequired();
             e.Property(x => x.Slug).HasMaxLength(180).IsRequired();
+            e.Property(x => x.Status).HasConversion<string>().HasMaxLength(40).IsRequired();
             e.Property(x => x.Description).HasMaxLength(4000).IsRequired();
             e.Property(x => x.ContactName).HasMaxLength(100).IsRequired();
             e.Property(x => x.PhoneNumber).HasMaxLength(20).IsRequired();

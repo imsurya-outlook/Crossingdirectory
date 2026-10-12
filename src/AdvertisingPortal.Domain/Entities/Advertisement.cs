@@ -6,7 +6,7 @@ namespace AdvertisingPortal.Domain.Entities;
 
 public class Advertisement : BaseEntity
 {
-    [Column("ShopID")]
+    [Column("ShopId")]
     public int? ShopId { get; set; }
 
     public string Title { get; set; } = default!;

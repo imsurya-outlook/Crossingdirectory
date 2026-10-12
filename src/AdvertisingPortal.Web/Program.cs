@@ -70,13 +70,8 @@ app.MapControllerRoute(
     pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
-    name: "shopid-root",
-    pattern: "",
-    defaults: new { controller = "Home", action = "RouteByShopId" });
-
-app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=RouteByShopId}/{id?}");
 
 using (var scope = app.Services.CreateScope())
 {

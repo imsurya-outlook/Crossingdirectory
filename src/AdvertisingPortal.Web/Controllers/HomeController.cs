@@ -17,7 +17,6 @@ public class HomeController : Controller
         _localities = localities;
     }
 
-    [HttpGet("")]
     public async Task<IActionResult> RouteByShopId([FromQuery(Name = "ShopID")] int? shopId)
     {
         if (shopId.HasValue)

@@ -42,6 +42,7 @@ public static class DependencyInjection
         services.AddScoped<ILocalityService, LocalityService>();
         services.AddScoped<IAnalyticsService, AnalyticsService>();
         services.AddScoped<IRatingService, RatingService>();
+        services.AddScoped<IShopImageService, ShopImageService>();
 
         return services;
     }

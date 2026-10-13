@@ -13,12 +13,18 @@ public class AdvertisementService : IAdvertisementService
 {
     private readonly ApplicationDbContext _db;
     private readonly IFileStorageService _storage;
+    private readonly IShopImageService _shopImages;
 
-    public AdvertisementService(ApplicationDbContext db, IFileStorageService storage)
+    public AdvertisementService(ApplicationDbContext db, IFileStorageService storage, IShopImageService shopImages)
     {
         _db = db;
         _storage = storage;
+        _shopImages = shopImages;
     }
+
+    /// <summary>Pictures of the shops behind these ads, for ads that have no uploaded image.</summary>
+    private Task<IReadOnlyDictionary<int, string>> ShopPictureUrlsAsync(IEnumerable<Advertisement> ads) =>
+        _shopImages.GetPictureUrlsAsync(ads.Where(a => a.ShopId.HasValue && a.Images.Count == 0).Select(a => a.ShopId!.Value));
 
     private IQueryable<Advertisement> PublicQuery() =>
         _db.Advertisements
@@ -60,9 +66,10 @@ public class AdvertisementService : IAdvertisementService
             .Take(pageSize)
             .ToListAsync();
 
+        var shopPictures = await ShopPictureUrlsAsync(items);
         return new PagedResult<AdvertisementListItemDto>
         {
-            Items = items.Select(MapListItem).ToList(),
+            Items = items.Select(a => MapListItem(a, shopPictures)).ToList(),
             TotalCount = total,
             Page = page,
             PageSize = pageSize
@@ -79,7 +86,8 @@ public class AdvertisementService : IAdvertisementService
             .Take(take)
             .ToListAsync();
 
-        return items.Select(MapListItem).ToList();
+        var shopPictures = await ShopPictureUrlsAsync(items);
+        return items.Select(a => MapListItem(a, shopPictures)).ToList();
     }
 
     // Verified businesses first, then the best rated, then the newest.
@@ -93,7 +101,8 @@ public class AdvertisementService : IAdvertisementService
             .Take(take)
             .ToListAsync();
 
-        return items.Select(MapListItem).ToList();
+        var shopPictures = await ShopPictureUrlsAsync(items);
+        return items.Select(a => MapListItem(a, shopPictures)).ToList();
     }
 
     public async Task<AdvertisementDetailsDto?> GetPublicDetailsBySlugAsync(string slug)
@@ -121,6 +130,21 @@ public class AdvertisementService : IAdvertisementService
             })
             .ToListAsync();
 
+        var images = ad.Images
+            .OrderByDescending(i => i.IsPrimary)
+            .ThenBy(i => i.DisplayOrder)
+            .Select(i => new AdvertisementImageDto
+            {
+                Id = i.Id,
+                ImageUrl = _storage.GetPublicUrl(i.FilePath),
+                IsPrimary = i.IsPrimary,
+                DisplayOrder = i.DisplayOrder
+            }).ToList();
+
+        // No uploaded images: show the linked shop's picture instead.
+        if (images.Count == 0 && (await ShopPictureUrlsAsync([ad])).TryGetValue(ad.ShopId ?? 0, out var shopPictureUrl))
+            images.Add(new AdvertisementImageDto { ImageUrl = shopPictureUrl, IsPrimary = true });
+
         return new AdvertisementDetailsDto
         {
             Id = ad.Id,
@@ -143,16 +167,7 @@ public class AdvertisementService : IAdvertisementService
             ViewCount = ad.Analytics?.ViewCount ?? 0,
             DetailsClickCount = ad.Analytics?.DetailsClickCount ?? 0,
             Reviews = reviews,
-            Images = ad.Images
-                .OrderByDescending(i => i.IsPrimary)
-                .ThenBy(i => i.DisplayOrder)
-                .Select(i => new AdvertisementImageDto
-                {
-                    Id = i.Id,
-                    ImageUrl = _storage.GetPublicUrl(i.FilePath),
-                    IsPrimary = i.IsPrimary,
-                    DisplayOrder = i.DisplayOrder
-                }).ToList()
+            Images = images
         };
     }
 
@@ -470,13 +485,17 @@ public class AdvertisementService : IAdvertisementService
             .Select(a => a.Slug)
             .FirstOrDefaultAsync();
 
-    private string? PrimaryUrl(Advertisement ad)
+    /// <summary>The ad's primary uploaded image; without one, the linked shop's picture when <paramref name="shopPictures"/> has it.</summary>
+    private string? PrimaryUrl(Advertisement ad, IReadOnlyDictionary<int, string>? shopPictures = null)
     {
         var image = ad.Images.OrderByDescending(i => i.IsPrimary).ThenBy(i => i.DisplayOrder).FirstOrDefault();
-        return image is null ? null : _storage.GetPublicUrl(image.FilePath);
+        if (image is not null)
+            return _storage.GetPublicUrl(image.FilePath);
+
+        return ad.ShopId is { } shopId && shopPictures?.TryGetValue(shopId, out var url) == true ? url : null;
     }
 
-    private AdvertisementListItemDto MapListItem(Advertisement ad) => new()
+    private AdvertisementListItemDto MapListItem(Advertisement ad, IReadOnlyDictionary<int, string> shopPictures) => new()
     {
         Id = ad.Id,
         Title = ad.Title,
@@ -490,7 +509,7 @@ public class AdvertisementService : IAdvertisementService
         IsVerified = ad.IsVerified,
         AverageRating = ad.AverageRating,
         RatingCount = ad.RatingCount,
-        PrimaryImageUrl = PrimaryUrl(ad),
+        PrimaryImageUrl = PrimaryUrl(ad, shopPictures),
         ShortDescription = ad.Description.Length > 140 ? ad.Description[..140] + "..." : ad.Description
     };
 

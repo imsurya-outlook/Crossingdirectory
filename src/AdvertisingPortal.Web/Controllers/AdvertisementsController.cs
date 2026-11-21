@@ -81,14 +81,43 @@ public class AdvertisementsController : Controller
         var model = await _ads.GetPublicDetailsBySlugAsync(slug);
         if (model is null) return NotFound();
 
-        await _analytics.IncrementViewAsync(model.Id);
-        model.ViewCount += 1;
+        // Counted once per visitor per ad inside the de-duplication window, so a
+        // refresh no longer increments the counter.
+        var counted = await _analytics.TryIncrementViewAsync(model.Id, ResolveViewerKey());
+        if (counted) model.ViewCount += 1;
 
         if (User.Identity?.IsAuthenticated == true)
             model.MyScore = await _ratings.GetUserScoreAsync(model.Id, User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
         return View(model);
     }
+
+    /// <summary>
+    /// Stable identity for view de-duplication: the signed-in account when there
+    /// is one, otherwise a durable anonymous visitor cookie.
+    /// </summary>
+    private string ResolveViewerKey()
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!string.IsNullOrEmpty(userId)) return "u:" + userId;
+
+        const string cookieName = "cd_visitor";
+        if (Request.Cookies.TryGetValue(cookieName, out var existing) && !string.IsNullOrWhiteSpace(existing))
+            return "a:" + existing;
+
+        var visitorId = Guid.NewGuid().ToString("N");
+        Response.Cookies.Append(cookieName, visitorId, new CookieOptions
+        {
+            HttpOnly = true,
+            IsEssential = true,
+            SameSite = SameSiteMode.Lax,
+            Secure = Request.IsHttps,
+            Expires = DateTimeOffset.UtcNow.AddYears(1)
+        });
+
+        return "a:" + visitorId;
+    }
+
 
     [HttpPost("{slug}/rate")]
     [Authorize]

@@ -8,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddInfrastructure(builder.Configuration);
+// keeps the window cache from growing without limit on a busy site.
+builder.Services.AddMemoryCache(options => options.SizeLimit = 100_000);
 
 builder.Services
     .AddIdentity<ApplicationUser, IdentityRole>(options =>

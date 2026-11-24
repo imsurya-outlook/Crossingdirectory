@@ -201,8 +201,10 @@ a { text-decoration: none; }
     background: #fff; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 4px 14px rgba(29,33,38,.04);
 }
 .detail-card { overflow: hidden; }
+#advertisementGallery { background: #eceef1; }
 .gallery-main { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #eceef1; }
 .gallery-empty { display: grid; place-items: center; color: #9aa1ab; font-size: 2.5rem; }
+.gallery-carousel-control { width: 12%; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .55)); }
 .gallery-thumbs { display: flex; gap: .5rem; padding: .75rem; overflow-x: auto; border-bottom: 1px solid var(--line); }
 .gallery-thumb { border: 2px solid transparent; border-radius: 11px; padding: 0; background: none; width: 84px; height: 62px; overflow: hidden; flex: 0 0 auto; }
 .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }

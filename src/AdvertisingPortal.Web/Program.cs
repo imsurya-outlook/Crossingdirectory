@@ -67,6 +67,16 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// "📞 Call shop" buttons in the WhatsApp bot's search replies link to https://<this site>/c/<code>. The WhatsApp bot app
+// owns the code (which user, which shop): forward the tap there; it records it and opens the phone's dialer.
+var callLinkTarget = builder.Configuration["CallLinks:TargetBaseUrl"]?.Trim().TrimEnd('/');
+app.MapGet("/c/{code}", (string code) =>
+    string.IsNullOrEmpty(callLinkTarget)
+        || code.Length != 10
+        || !code.All(char.IsAsciiLetterOrDigit)
+            ? Results.NotFound()
+            : Results.Redirect($"{callLinkTarget}/c/{code}"));
+
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");

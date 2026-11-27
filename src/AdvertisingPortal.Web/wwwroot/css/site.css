@@ -291,6 +291,9 @@ a { text-decoration: none; }
 .app-footer { background: var(--graphite); border-top: 3px solid var(--brand); color: #d6d9de; }
 .footer-brand { display: flex; align-items: center; gap: .5rem; font-weight: 700; color: #fff; }
 .footer-note { color: #9aa1ab; font-size: .85rem; }
+.footer-link { color: #d6d9de; font-size: .85rem; }
+.footer-link:hover { color: var(--brand); }
+.footer-links { display: grid; gap: .25rem; }
 
 @media (max-width: 991.98px) {
     .contact-card { position: static; }

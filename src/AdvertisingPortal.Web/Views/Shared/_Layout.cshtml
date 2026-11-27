@@ -17,7 +17,7 @@
     <div class="container">
         <a class="navbar-brand" asp-controller="Home" asp-action="Index">
             <span class="brand-mark"><i class="bi bi-signpost-split-fill"></i></span>
-            <span class="brand-text">Our<span class="brand-accent">Shops</span></span>
+                <span class="brand-text">Our</span><span class="brand-accent">Shops</span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
             <span class="navbar-toggler-icon"></span>
@@ -86,11 +86,14 @@
         <div>
             <div class="footer-brand">
                 <span class="brand-mark brand-mark-sm"><i class="bi bi-signpost-split-fill"></i></span>
-                Our<span class="brand-accent">Shops</span>
+                    <span class="brand-text">Our</span><span class="brand-accent">Shops</span>
             </div>
             <div class="footer-note">Local business advertising for Crossing Republic</div>
         </div>
-        <div class="footer-note">&copy; @DateTime.UtcNow.Year Our Shops. Pilot build.</div>
+        <div class="footer-links text-end">
+            <div><a class="footer-link" href="/privacy.html">Privacy Policy</a></div>
+            <div class="footer-note">&copy; @DateTime.UtcNow.Year Our Shops. Pilot build.</div>
+        </div>
     </div>
 </footer>
 
